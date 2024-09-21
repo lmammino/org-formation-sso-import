@@ -9,9 +9,9 @@ assignments into a
 If you have already bootstrapped your Landing Zone manually (or with some other
 tool other than OrgFormation, e.g. Control Tower) and you want to start using
 OrgFormation, you can easily import all your accounts and organizational units
-with the `org-formation import` command. However, you will still need to
-manually recreate all your AWS SSO groups, permission sets and assignments in
-your OrgFormation template.
+with the `org-formation init` command. However, you will still need to manually
+delete all your AWS SSO groups, permission sets and assignments and recreate
+them as IaC in your OrgFormation template.
 
 This script aims to automate this process by importing all your AWS SSO
 configuration into your OrgFormation template and making sure all the existing
