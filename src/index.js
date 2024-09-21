@@ -174,11 +174,50 @@ groups = groups.filter(g => g.DisplayName !== tempGroupName)
 // 6.2. Find all existing permissions sets
 const listPermissionSetsResult =
   await $$`aws sso-admin list-permission-sets --instance-arn ${managingInstanceArn}`
+if (listPermissionSetsResult.exitCode !== 0) {
+  console.error(listPermissionSetsResult.stderr)
+  process.exit(1)
+}
+const permissionSetsArns = JSON.parse(
+  listPermissionSetsResult.stdout
+).PermissionSets
+const permissionSets = []
+for (const permissionSetArn of permissionSetsArns) {
+  const describePermissionSetResult =
+    await $$`aws sso-admin describe-permission-set --instance-arn ${managingInstanceArn} --permission-set-arn ${permissionSetArn}`
+  if (describePermissionSetResult.exitCode !== 0) {
+    console.error(describePermissionSetResult.stderr)
+    process.exit(1)
+  }
+
+  const permissionSet = JSON.parse(
+    describePermissionSetResult.stdout
+  ).PermissionSet
+
+  // get inline policies
+  const getPermissionSetInlinePolicyResult =
+    await $$`aws sso-admin get-inline-policy-for-permission-set --instance-arn ${managingInstanceArn} --permission-set-arn ${permissionSetArn}`
+
+  permissionSet.InlinePolicy = JSON.parse(
+    getPermissionSetInlinePolicyResult.stdout
+  ).InlinePolicy
+
+  // get managed policies
+  const getPermissionSetManagedPoliciesResult =
+    await $$`aws sso-admin list-managed-policies-in-permission-set --instance-arn ${managingInstanceArn} --permission-set-arn ${permissionSetArn}`
+  permissionSet.ManagedPolicies = JSON.parse(
+    getPermissionSetManagedPoliciesResult.stdout
+  ).AttachedManagedPolicies.map(i => i.Arn)
+
+  permissionSets.push(permissionSet)
+}
 
 // 7. Create JSON file with list of resources to import
 const resourcesJsonContent = createResourcesJson({
   identityStoreId,
+  managingInstanceArn,
   groups,
+  permissionSets,
 })
 await writeFile(`${tmpDir}/resources.json`, resourcesJsonContent)
 
@@ -188,8 +227,14 @@ const templateJsonContent = createTemplate({
   managingInstanceArn,
   tempGroup,
   groups,
+  permissionSets,
 })
 await writeFile(`${tmpDir}/template.json`, templateJsonContent)
+
+// TODO: continue from here
+console.log(groups)
+console.log(permissionSets)
+process.exit(0)
 
 // 9. Create changeset
 const changesetName = 'OrgFormationSsoImportResources'
@@ -234,3 +279,5 @@ if (executeStackSetResult.exitCode !== 0) {
   console.error(executeStackSetResult.stderr)
   process.exit(1)
 }
+
+// TODO generate new sso-assignments.yml with the new groups and permission sets and assignments

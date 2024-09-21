@@ -1,5 +1,11 @@
-export function createResourcesJson({ identityStoreId, groups }) {
+export function createResourcesJson({
+  identityStoreId,
+  managingInstanceArn,
+  groups,
+  permissionSets,
+}) {
   const resources = []
+
   for (const group of groups) {
     resources.push({
       ResourceType: 'AWS::IdentityStore::Group',
@@ -7,6 +13,17 @@ export function createResourcesJson({ identityStoreId, groups }) {
       ResourceIdentifier: {
         GroupId: group.GroupId,
         IdentityStoreId: identityStoreId,
+      },
+    })
+  }
+
+  for (const permissionSet of permissionSets) {
+    resources.push({
+      ResourceType: 'AWS::SSO::PermissionSet',
+      LogicalResourceId: `${permissionSet.Name}PermissionSet`,
+      ResourceIdentifier: {
+        PermissionSetArn: permissionSet.PermissionSetArn,
+        InstanceArn: managingInstanceArn,
       },
     })
   }
@@ -19,6 +36,7 @@ export function createTemplate({
   managingInstanceArn,
   tempGroup,
   groups,
+  permissionSets,
 }) {
   const template = {
     AWSTemplateFormatVersion: '2010-09-09',
@@ -58,6 +76,24 @@ export function createTemplate({
         IdentityStoreId: {
           Ref: 'IdentityStoreId',
         },
+      },
+    }
+  }
+
+  for (const permissionSet of permissionSets) {
+    template.Resources[`${permissionSet.Name}PermissionSet`] = {
+      Type: 'AWS::SSO::PermissionSet',
+      DeletionPolicy: 'Retain',
+      Properties: {
+        Name: permissionSet.Name,
+        Description: permissionSet.Description,
+        InstanceArn: {
+          Ref: 'ManagingInstanceArn',
+        },
+        InlinePolicy: permissionSet.InlinePolicy,
+        ManagedPolicies: permissionSet.ManagedPolicies,
+        SessionDuration: permissionSet.SessionDuration,
+        RelayStateType: permissionSet.RelayStateType,
       },
     }
   }
