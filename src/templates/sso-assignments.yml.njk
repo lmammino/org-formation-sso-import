@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: '2010-09-09-OC'
+Description: SSO Assignments for Users and Groups
+
+Organization: !Include ../organization.yml
+
+OrganizationBindings:
+  ManagementAccountBinding:
+    # Only the management account
+    IncludeMasterAccount: true
+
+DefaultOrganizationBinding: !Ref ManagementAccountBinding
+DefaultOrganizationBindingRegion: eu-west-1
+
+Parameters:
+  IdentityStoreId:
+    Type: String
+    Default: {{ identityStoreId }}
+  ManagingInstanceArn:
+    Type: String
+    Default: {{ managingInstanceArn }}
+
+Resources:
+  # Groups
+{%- for group in groups %}
+  {{ group.name }}Group:
+    OrganizationBinding: !Ref ManagementAccountBinding
+    Type: AWS::IdentityStore::Group
+    Properties:
+      Description: {{ group.description }}
+      DisplayName: {{ group.displayName }}
+      IdentityStoreId: !Ref IdentityStoreId
+{% endfor %}

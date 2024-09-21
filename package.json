@@ -1,0 +1,22 @@
+{
+  "name": "org-formation-sso-import",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/index.js",
+  "type": "module",
+  "bin": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["AWS", "SSO", "Organization", "Formation", "OrgFormation"],
+  "author": "Luciano Mammino",
+  "license": "MIT",
+  "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247",
+  "dependencies": {
+    "nunjucks": "^3.2.4",
+    "zx": "^8.1.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.2"
+  }
+}
