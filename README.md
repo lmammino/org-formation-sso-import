@@ -82,3 +82,22 @@ This will print something like:
   -h
   Prints this help
 ```
+
+## How it works
+
+This script will perform a number of actions to import your AWS SSO
+configuration into your OrgFormation templates:
+
+1. It will create a new CloudFormation stack in your management account with the
+   name you provide (or `SsoAssignments` by default) and deploy it using
+   OrgFormation.
+2. It will query your AWS SSO configuration and retrieve groups, permission sets
+   and assignments.
+3. It will import all of these resources into the SSO stack managed by
+   OrgFormation.
+4. It will create a new OrgFormation template in your workspace with the
+   resources imported from AWS SSO.
+
+From this point on, you can manage your AWS SSO configuration as IaC with
+OrgFormation and you wont' have to delete and recreate your groups, permission
+sets and assignments just to be able to manage them in OrgFormation.
