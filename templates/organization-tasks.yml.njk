@@ -1,5 +1,11 @@
+{%- if organizationUpdate -%}
+OrganizationUpdate:
+  Type: update-organization
+  Template: ./organization.yml
+{%- endif -%}
+
 SsoAssignments:
   Type: update-stacks
-  Template: ./sso-assignments.yml
+  Template: {{ ssoAssignmentTemplate }}
   StackName: {{ stackName }}
   StackDescription: Manage SSO Assignments

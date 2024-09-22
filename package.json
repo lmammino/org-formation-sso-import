@@ -20,11 +20,13 @@
   "license": "MIT",
   "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247",
   "dependencies": {
+    "@aws-sdk/client-cloudformation": "^3.654.0",
     "@aws-sdk/client-identitystore": "^3.654.0",
     "@aws-sdk/client-sso-admin": "^3.654.0",
     "@aws-sdk/client-sts": "^3.654.0",
     "mkdirp": "^3.0.1",
     "nunjucks": "^3.2.4",
+    "rimraf": "^6.0.1",
     "yaml": "^2.5.1",
     "zx": "^8.1.8"
   },

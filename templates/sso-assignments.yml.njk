@@ -22,11 +22,60 @@ Parameters:
 Resources:
   # Groups
 {%- for group in groups %}
-  {{ group.name }}Group:
+  {{ group.DisplayName }}Group:
     OrganizationBinding: !Ref ManagementAccountBinding
     Type: AWS::IdentityStore::Group
+    DeletionPolicy: Retain
     Properties:
-      Description: {{ group.description }}
-      DisplayName: {{ group.displayName }}
+      Description: {{ group.Description }}
+      DisplayName: {{ group.DisplayName }}
       IdentityStoreId: !Ref IdentityStoreId
+
+{% endfor %}
+
+  # PermissionSets
+{%- for permissionSet in permissionSets %}
+  {{ permissionSet.Name }}PermissionSet:
+    OrganizationBinding: !Ref ManagementAccountBinding
+    Type: AWS::SSO::PermissionSet
+    DeletionPolicy: Retain
+    Properties:
+      Name: {{ permissionSet.Name }}
+      Description: {{ permissionSet.Description }}
+      InstanceArn: !Ref ManagingInstanceArn
+      {%- if permissionSet.InlinePolicy %}
+      InlinePolicy: !JsonString
+{{ [permissionSet.InlinePolicy] | toJsonToYaml(4) -}}
+        - 'pretty-print'
+      {%- endif %}
+      {%- if permissionSet.ManagedPolicies %}
+      ManagedPolicies:
+        {%- for managedPolicy in permissionSet.ManagedPolicies %}
+        - {{ managedPolicy }}
+        {%- endfor %}
+      {%- endif %}
+      SessionDuration: {{ permissionSet.SessionDuration }}
+      {%- if permissionSet.RelayStateType %}
+      RelayStateType: {{ permissionSet.RelayStateType }}
+      {%- endif %}
+
+{% endfor %}
+
+  # Assignments
+{%- for assignment in assignments %}
+  {%- set referenceGroup = groupsById[assignment.PrincipalId] -%}
+  {%- set referencePermissionSet = permissionSetsByArn[assignment.PermissionSetArn] -%}
+  {%- set referenceAccount = accountsByAccountId[assignment.AccountId] %}
+  {{ referenceGroup.DisplayName }}GroupTo{{ referencePermissionSet.Name }}PermissionSetTo{{ referenceAccount.LogicalId }}:
+    OrganizationBinding: !Ref ManagementAccountBinding
+    Type: AWS::SSO::Assignment
+    DeletionPolicy: Retain
+    Properties:
+      InstanceArn: !Ref ManagingInstanceArn
+      PermissionSetArn: !GetAtt {{ referencePermissionSet.Name }}PermissionSet.PermissionSetArn
+      PrincipalId: !GetAtt {{ referenceGroup.DisplayName }}Group.GroupId
+      PrincipalType: GROUP
+      TargetId: !GetAtt {{ referenceAccount.LogicalId }}.AccountId
+      TargetType: AWS_ACCOUNT
+
 {% endfor %}

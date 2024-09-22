@@ -93,8 +93,9 @@ configuration into your OrgFormation templates:
    OrgFormation.
 2. It will query your AWS SSO configuration and retrieve groups, permission sets
    and assignments.
-3. It will import all of these resources into the SSO stack managed by
-   OrgFormation.
+3. It will import all of these resources into the CloudFormation SSO stack
+   managed by OrgFormation (this follows the steps described in
+   [this AWS tutorial](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import-existing-stack.html)).
 4. It will create a new OrgFormation template in your workspace with the
    resources imported from AWS SSO.
 

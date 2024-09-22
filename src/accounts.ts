@@ -5,6 +5,8 @@ type OrganizationAccount = {
   Type: 'OC::ORG::MasterAccount' | 'OC::ORG::Account'
   Properties: {
     AccountId: string
+    AccountName: string
+    RootEmail: string
   }
 }
 type OrganizationOU = {
@@ -21,7 +23,16 @@ const refTag: ScalarTag = {
   resolve: (value: string) => ({ '!Ref': value }),
 }
 
-export async function listAccountIdsInOrganizationYml() {
+export type OrgFormationAccount = {
+  AccountId: string
+  AccountName: string
+  RootEmail: string
+  LogicalId: string
+}
+
+export async function listOrgFormationAccounts(): Promise<
+  OrgFormationAccount[]
+> {
   const fileContent = await readFile('organization.yml', 'utf-8')
   const organization = parse(fileContent, {
     schema: 'core',
@@ -29,11 +40,16 @@ export async function listAccountIdsInOrganizationYml() {
     strict: false,
     customTags: [refTag],
   }) as OrganizationYaml
-  return Object.values(organization.Organization)
+  return Object.entries(organization.Organization)
     .filter(
-      value =>
+      ([_, value]) =>
         value.Type === 'OC::ORG::Account' ||
         value.Type === 'OC::ORG::MasterAccount'
     )
-    .map(o => (o as OrganizationAccount).Properties.AccountId)
+    .map(([name, o]) => ({
+      AccountId: (o as OrganizationAccount).Properties.AccountId,
+      AccountName: (o as OrganizationAccount).Properties.AccountName,
+      RootEmail: (o as OrganizationAccount).Properties.RootEmail,
+      LogicalId: name,
+    }))
 }

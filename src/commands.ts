@@ -1,4 +1,11 @@
 import {
+  CloudFormationClient,
+  CreateChangeSetCommand,
+  DescribeChangeSetCommand,
+  ExecuteChangeSetCommand,
+  type ResourceToImport,
+} from '@aws-sdk/client-cloudformation'
+import {
   type Group,
   IdentitystoreClient,
   ListGroupsCommand,
@@ -17,10 +24,12 @@ import {
 } from '@aws-sdk/client-sso-admin'
 import { GetCallerIdentityCommand, STSClient } from '@aws-sdk/client-sts'
 import type { Shell } from 'zx'
+import { IMPORT_RESOURCES_CHANGESET_NAME } from './consts.js'
 
 const stsClient = new STSClient()
 const ssoAdminClient = new SSOAdminClient()
 const identityStoreClient = new IdentitystoreClient()
+const cloudformationClient = new CloudFormationClient()
 
 export async function getCallerIdentity() {
   const command = new GetCallerIdentityCommand()
@@ -63,10 +72,10 @@ export async function listSsoInstances() {
   return instances
 }
 
-export async function orgFormationDeploy($$: Shell, tmpDir: string) {
+export async function orgFormationDeploy($$: Shell, taskFile: string) {
   try {
     const result =
-      await $$`org-formation perform-tasks ${tmpDir}/organization-tasks.yml --organization-file organization.yml`
+      await $$`org-formation perform-tasks ${taskFile} --organization-file organization.yml`
     return result.stdout
   } catch (e) {
     console.error('Failed to deploy initial stack')
@@ -199,4 +208,61 @@ export async function listAssignments(
   }
 
   return assignments
+}
+
+type CreateAndExecuteChangeSetOptions = {
+  stackName: string
+  templateBody: string
+  resourcesToImport: ResourceToImport[]
+}
+
+export async function createAndExecuteChangeSet({
+  stackName,
+  templateBody,
+  resourcesToImport,
+}: CreateAndExecuteChangeSetOptions) {
+  // create changeset
+  const createChangeSetCommand = new CreateChangeSetCommand({
+    ChangeSetName: IMPORT_RESOURCES_CHANGESET_NAME,
+    ChangeSetType: 'IMPORT',
+    StackName: stackName,
+    ResourcesToImport: resourcesToImport,
+    TemplateBody: templateBody,
+  })
+  await cloudformationClient.send(createChangeSetCommand)
+
+  // wait for changeset to be ready
+  let changeSetCreationAttempts = 0
+  while (true) {
+    const describeChangeSetCommand = new DescribeChangeSetCommand({
+      ChangeSetName: IMPORT_RESOURCES_CHANGESET_NAME,
+      StackName: stackName,
+    })
+    const describeChangeSetResult = await cloudformationClient.send(
+      describeChangeSetCommand
+    )
+
+    if (describeChangeSetResult.Status === 'CREATE_COMPLETE') {
+      break
+    }
+
+    if (describeChangeSetResult.Status === 'FAILED') {
+      throw new Error(
+        `Failed to create change set: ${describeChangeSetResult.StatusReason}`
+      )
+    }
+
+    changeSetCreationAttempts++
+    if (changeSetCreationAttempts > 30) {
+      throw new Error('Change set creation has been taking too long')
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+
+  // execute changeset
+  const executeChangeSetCommand = new ExecuteChangeSetCommand({
+    ChangeSetName: IMPORT_RESOURCES_CHANGESET_NAME,
+    StackName: stackName,
+  })
+  await cloudformationClient.send(executeChangeSetCommand)
 }
