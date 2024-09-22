@@ -101,3 +101,13 @@ configuration into your OrgFormation templates:
 From this point on, you can manage your AWS SSO configuration as IaC with
 OrgFormation and you wont' have to delete and recreate your groups, permission
 sets and assignments just to be able to manage them in OrgFormation.
+
+## Contributing
+
+Everyone is very welcome to contribute to this project. You can contribute just
+by submitting bugs or suggesting improvements by
+[opening an issue on GitHub](https://github.com/lmammino/org-formation-sso-import/issues).
+
+## License
+
+Licensed under [MIT License](LICENSE). © Luciano Mammino.
