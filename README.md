@@ -20,6 +20,9 @@ OrgFormation.
 
 ## Installation
 
+Installation is optional (you can run the script directly with `npx`), but if
+you want to install it globally, you can run:
+
 ```bash
 npm install -g org-formation-sso-import
 ```
@@ -35,8 +38,10 @@ npm install -g org-formation-sso-import
 In your OrgFormation workspace, run the following command:
 
 ```bash
-org-formation-sso-import
+npx org-formation-sso-import
 ```
+
+(or just `org-formation-sso-import` if you installed it globally)
 
 > [!NOTE]\
 > This command assumes that your `organization.yml` file is in the root of your
