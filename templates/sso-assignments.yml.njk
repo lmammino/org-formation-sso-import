@@ -41,7 +41,7 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       Name: {{ permissionSet.Name }}
-      Description: "{{ permissionSet.Description }}"
+      Description: "{{ permissionSet.Description | default('-') }}"
       InstanceArn: !Ref ManagingInstanceArn
       {%- if permissionSet.InlinePolicy %}
       InlinePolicy: !JsonString
