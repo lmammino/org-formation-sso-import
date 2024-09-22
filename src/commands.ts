@@ -1,16 +1,17 @@
 import {
+  type Group,
   IdentitystoreClient,
   ListGroupsCommand,
-  type Group,
 } from '@aws-sdk/client-identitystore'
 import {
+  type AccountAssignment,
   DescribePermissionSetCommand,
   GetInlinePolicyForPermissionSetCommand,
   type InstanceMetadata,
+  ListAccountAssignmentsCommand,
   ListInstancesCommand,
   ListManagedPoliciesInPermissionSetCommand,
   ListPermissionSetsCommand,
-  ListPermissionSetsProvisionedToAccountCommand,
   type PermissionSet,
   SSOAdminClient,
 } from '@aws-sdk/client-sso-admin'
@@ -95,7 +96,7 @@ export async function listGroups(identityStoreId: string) {
   return groups
 }
 
-interface ExtendedPermissionSet extends PermissionSet {
+export interface ExtendedPermissionSet extends PermissionSet {
   InlinePolicy?: string
   ManagedPolicies: string[]
 }
@@ -165,4 +166,37 @@ export async function listPermissionSets(instanceArn: string) {
   }
 
   return permissionSets
+}
+
+export async function listAssignments(
+  instanceArn: string,
+  accountIds: string[],
+  permissionSets: ExtendedPermissionSet[]
+) {
+  const assignments: AccountAssignment[] = []
+
+  for (const accountId of accountIds) {
+    for (const permissionSet of permissionSets) {
+      let lastToken: string | undefined
+
+      while (true) {
+        const accountAssignment = new ListAccountAssignmentsCommand({
+          AccountId: accountId,
+          InstanceArn: instanceArn,
+          PermissionSetArn: permissionSet.PermissionSetArn,
+          NextToken: lastToken,
+        })
+        const assignmentsResponse = await ssoAdminClient.send(accountAssignment)
+        if (assignmentsResponse.AccountAssignments) {
+          assignments.push(...assignmentsResponse.AccountAssignments)
+        }
+        lastToken = assignmentsResponse.NextToken
+        if (!assignmentsResponse.NextToken) {
+          break
+        }
+      }
+    }
+  }
+
+  return assignments
 }

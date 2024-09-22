@@ -23,6 +23,9 @@ importers:
       nunjucks:
         specifier: ^3.2.4
         version: 3.2.4
+      yaml:
+        specifier: ^2.5.1
+        version: 2.5.1
       zx:
         specifier: ^8.1.8
         version: 8.1.8
@@ -440,6 +443,11 @@ packages:
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    hasBin: true
+
+  yaml@2.5.1:
+    resolution: {integrity: sha512-bLQOjaX/ADgQ20isPJRvF0iRUHIxVhYvr53Of7wGcWlO2jvtUlH5m87DsmulFVxRpNLOnI4tB6p/oh8D7kpn9Q==}
+    engines: {node: '>= 14'}
     hasBin: true
 
   zx@8.1.8:
@@ -1223,6 +1231,8 @@ snapshots:
   undici-types@6.19.8: {}
 
   uuid@9.0.1: {}
+
+  yaml@2.5.1: {}
 
   zx@8.1.8:
     optionalDependencies:

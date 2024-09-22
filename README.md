@@ -38,8 +38,13 @@ In your OrgFormation workspace, run the following command:
 org-formation-sso-import
 ```
 
-Note: this command assumes that your `organization.yml` file is in the root of
-your workspace.
+> [!NOTE]\
+> This command assumes that your `organization.yml` file is in the root of your
+> workspace.
+
+> [!IMPORTANT]\
+> Your `organization.yml` file must have explicit `AccountId` properties for
+> every account in your organization.
 
 ### Configuration options
 

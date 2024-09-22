@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { parseArgs } from 'node:util'
 import type { ParseArgsConfig } from 'node:util'
+import { parseArgs } from 'node:util'
 
 const pkgPath = join(import.meta.dirname, '../package.json')
 const { version, name } = JSON.parse(await readFile(pkgPath, 'utf-8'))

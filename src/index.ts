@@ -1,25 +1,25 @@
 #!/usr/bin/env node
 
-import { $ } from 'zx'
+import type { Group } from '@aws-sdk/client-identitystore'
+import { mkdirp } from 'mkdirp'
 import { writeFile } from 'node:fs/promises'
-import {
-  createBaseOrgFormationSsoAssignmentsYml,
-  createOrganizationTasksYml,
-  createResourcesJson,
-  createTemplate,
-} from './templates.js'
+import { $ } from 'zx'
+import { listAccountIdsInOrganizationYml } from './accounts.js'
 import { getArgs } from './args.js'
 import {
   getCallerIdentity,
   getOrgFormationVersion,
+  listAssignments,
   listGroups,
   listPermissionSets,
   listSsoInstances,
-  orgFormationDeploy,
 } from './commands.js'
-import { mkdirp } from 'mkdirp'
 import { TEMP_DIR, TEMP_GROUP_NAME } from './consts.js'
-import { get } from 'node:http'
+import {
+  createBaseOrgFormationSsoAssignmentsYml,
+  createOrganizationTasksYml,
+  createTemplate,
+} from './templates.js'
 
 const args = getArgs(process.argv)
 
@@ -79,35 +79,33 @@ await writeFile(`${TEMP_DIR}/sso-assignments.yml`, baseTemplateContent)
 
 // 6.1. Find all existing groups
 let groups = await listGroups(identityStoreId)
-const tempGroup = groups.find(g => g.DisplayName === TEMP_GROUP_NAME)
+const tempGroup = groups.find(g => g.DisplayName === TEMP_GROUP_NAME) as Group
 groups = groups.filter(g => g.DisplayName !== TEMP_GROUP_NAME)
 
 // 6.2. Find all existing permissions sets
 const permissionSets = await listPermissionSets(managingInstanceArn)
 
 // 6.3 Find all existing assignments
-// // TODO: list accounts (from organization.yml)
-// // TODO: for every pair of accounts/permission-set, list account assignments
-// //       aws sso-admin list-account-assignments --instance-arn ${managingInstanceArn} --account-id ${accountId} --permission-set-arn ${permissionSetArn}
+const accountIds = await listAccountIdsInOrganizationYml()
+const assignments = await listAssignments(
+  managingInstanceArn,
+  accountIds,
+  permissionSets
+)
 
-// // 7. Create JSON file with list of resources to import
-// const resourcesJsonContent = createResourcesJson({
-//   identityStoreId,
-//   managingInstanceArn,
-//   groups,
-//   permissionSets,
-// })
-// await writeFile(`${tmpDir}/resources.json`, resourcesJsonContent)
+console.info('groups', groups)
+console.info('permissionSets', permissionSets)
+console.info('assignments', assignments)
 
-// // 8. Create CloudFormation template for resource import
-// const templateJsonContent = createTemplate({
-//   identityStoreId,
-//   managingInstanceArn,
-//   tempGroup,
-//   groups,
-//   permissionSets,
-// })
-// await writeFile(`${tmpDir}/template.json`, templateJsonContent)
+// 8. Create CloudFormation template for resource import
+const templateJsonContent = createTemplate({
+  identityStoreId,
+  managingInstanceArn,
+  tempGroup,
+  groups,
+  permissionSets,
+})
+await writeFile(`${TEMP_DIR}/template.json`, templateJsonContent)
 
 // // TODO: continue from here
 // console.log(groups)

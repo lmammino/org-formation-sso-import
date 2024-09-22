@@ -1,5 +1,7 @@
+import type { Group } from '@aws-sdk/client-identitystore'
 import { join } from 'node:path'
 import nunjucks from 'nunjucks'
+import type { ExtendedPermissionSet } from './commands.js'
 import { TEMP_GROUP_NAME } from './consts.js'
 
 type ResourceIdentityStoreGroup = {
@@ -24,7 +26,7 @@ type TemplateResourceIdentityStoreGroup = {
   Type: 'AWS::IdentityStore::Group'
   DeletionPolicy?: 'Retain' | 'Delete'
   Properties: {
-    Description: string
+    Description?: string
     DisplayName: string
     IdentityStoreId: { Ref: string } | string
   }
@@ -34,11 +36,11 @@ type TemplateResourcePermissionSet = {
   DeletionPolicy?: 'Retain' | 'Delete'
   Properties: {
     Name: string
-    Description: string
+    Description?: string
     InstanceArn: { Ref: string } | string
-    InlinePolicy: string
+    InlinePolicy?: string
     ManagedPolicies: string[]
-    SessionDuration: string
+    SessionDuration?: string
     RelayStateType?: string
   }
 }
@@ -97,22 +99,9 @@ export function createResourcesJson({
 type CreateTemplateOptions = {
   identityStoreId: string
   managingInstanceArn: string
-  tempGroup: {
-    DisplayName: string
-    Description: string
-  }
-  groups: {
-    DisplayName: string
-    Description: string
-  }[]
-  permissionSets: {
-    Name: string
-    Description: string
-    InlinePolicy: string
-    ManagedPolicies: string[]
-    SessionDuration: string
-    RelayStateType: string
-  }[]
+  tempGroup: Group
+  groups: Group[]
+  permissionSets: ExtendedPermissionSet[]
 }
 
 type CFTemplate = {
@@ -160,7 +149,7 @@ export function createTemplate({
     Type: 'AWS::IdentityStore::Group',
     Properties: {
       Description: tempGroup.Description,
-      DisplayName: tempGroup.DisplayName,
+      DisplayName: tempGroup.DisplayName as string,
       IdentityStoreId: {
         Ref: 'IdentityStoreId',
       },
@@ -173,7 +162,7 @@ export function createTemplate({
       DeletionPolicy: 'Retain',
       Properties: {
         Description: group.Description,
-        DisplayName: group.DisplayName,
+        DisplayName: group.DisplayName as string,
         IdentityStoreId: {
           Ref: 'IdentityStoreId',
         },
@@ -186,7 +175,7 @@ export function createTemplate({
       Type: 'AWS::SSO::PermissionSet',
       DeletionPolicy: 'Retain',
       Properties: {
-        Name: permissionSet.Name,
+        Name: permissionSet.Name as string,
         Description: permissionSet.Description,
         InstanceArn: {
           Ref: 'ManagingInstanceArn',
@@ -194,10 +183,12 @@ export function createTemplate({
         InlinePolicy: permissionSet.InlinePolicy,
         ManagedPolicies: permissionSet.ManagedPolicies,
         SessionDuration: permissionSet.SessionDuration,
-        RelayStateType: permissionSet.RelayStateType,
+        RelayStateType: permissionSet.RelayState,
       },
     }
   }
+
+  // TODO: add assignments
 
   return JSON.stringify(template, null, 2)
 }
