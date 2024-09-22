@@ -64,16 +64,16 @@ if (!(identityStoreId && managingInstanceArn)) {
 
 // 2. creates a temporary directory
 await mkdirp(TEMP_DIR)
-console.info(`Created ${TEMP_DIR}`)
+console.info(`✅ Created ${TEMP_DIR}`)
 
 // 3. create org-formation task
 const taskContent = createOrganizationTasksYml({
   stackName,
   organizationUpdate: false,
-  ssoAssignmentTemplate: './sso-assignment.yml',
+  ssoAssignmentTemplate: './sso-assignments.yml',
 })
 await writeFile(`${TEMP_DIR}/organization-tasks.yml`, taskContent)
-console.info(`Created ${TEMP_DIR}/organization-tasks.yml`)
+console.info(`✅ Created ${TEMP_DIR}/organization-tasks.yml`)
 
 // 4. create base org-formation template for SsoAssignments
 const baseTemplateContent = createBaseOrgFormationSsoAssignmentsYml({
@@ -81,48 +81,48 @@ const baseTemplateContent = createBaseOrgFormationSsoAssignmentsYml({
   managingInstanceArn,
 })
 await writeFile(`${TEMP_DIR}/sso-assignments.yml`, baseTemplateContent)
-console.info(`Created ${TEMP_DIR}/sso-assignments.yml`)
+console.info(`✅ Created ${TEMP_DIR}/sso-assignments.yml`)
 
-// 5. Find all existing resources
+// 5. org-formation deploy initial stack
+await orgFormationDeploy($$, `${TEMP_DIR}/organization-tasks.yml`)
+console.info('✅ Deployed initial OrgFormation stack')
 
-// 5.1 Load OrgFormation accounts
+// 6. Find all existing resources
+
+// 6.1 Load OrgFormation accounts
 const accounts = await listOrgFormationAccounts()
 const accountIds = accounts.map(a => a.AccountId)
-console.info('Loaded OrgFormation accounts')
+console.info('✅ Loaded OrgFormation accounts')
 if (args.verbose) {
-  console.info(JSON.stringify(accounts, null, 2))
+  console.debug(JSON.stringify(accounts, null, 2))
 }
 
-// 5.2. Find all existing groups
+// 6.2. Find all existing groups
 let groups = await listGroups(identityStoreId)
 const tempGroup = groups.find(g => g.DisplayName === TEMP_GROUP_NAME) as Group
 groups = groups.filter(g => g.DisplayName !== TEMP_GROUP_NAME)
-console.info('Loaded groups')
+console.info('✅ Loaded groups')
 if (args.verbose) {
-  console.info(JSON.stringify(groups, null, 2))
+  console.debug(JSON.stringify(groups, null, 2))
 }
 
-// 5.3. Find all existing permissions sets
+// 6.3. Find all existing permissions sets
 const permissionSets = await listPermissionSets(managingInstanceArn)
-console.info('Loaded permission sets')
+console.info('✅ Loaded permission sets')
 if (args.verbose) {
-  console.info(JSON.stringify(permissionSets, null, 2))
+  console.debug(JSON.stringify(permissionSets, null, 2))
 }
 
-// 5.4 Find all existing assignments
+// 6.4 Find all existing assignments
 const assignments = await listAssignments(
   managingInstanceArn,
   accountIds,
   permissionSets
 )
-console.info('Loaded assignments')
+console.info('✅ Loaded assignments')
 if (args.verbose) {
-  console.info(JSON.stringify(assignments, null, 2))
+  console.debug(JSON.stringify(assignments, null, 2))
 }
-
-// 6. org-formation deploy initial stack
-await orgFormationDeploy($$, `${TEMP_DIR}/organization-tasks.yml`)
-console.info('Deployed initial OrgFormation stack')
 
 // 7. Create resources file for resource import
 const resourcesToImport = createResourcesToImport({
@@ -133,9 +133,9 @@ const resourcesToImport = createResourcesToImport({
   assignments,
   accounts,
 })
-console.info('Created resources file for resource import')
+console.info('✅ Created resources file for resource import')
 if (args.verbose) {
-  console.info(JSON.stringify(resourcesToImport, null, 2))
+  console.debug(JSON.stringify(resourcesToImport, null, 2))
 }
 
 // 8. Create CloudFormation template for resource import
@@ -148,9 +148,9 @@ const templateBody = createTemplate({
   assignments,
   accounts,
 })
-console.info('Created CloudFormation template for resource import')
+console.info('✅ Created CloudFormation template for resource import')
 if (args.verbose) {
-  console.info(templateBody)
+  console.debug(templateBody)
 }
 
 // 9. Create and execute changeset
@@ -159,7 +159,7 @@ await createAndExecuteChangeSet({
   templateBody,
   resourcesToImport,
 })
-console.info(`Imported resources in stack ${stackName}`)
+console.info(`✅ Imported resources in stack ${stackName}`)
 
 // 10. generate new sso-assignments.yml with the new groups and permission sets and assignments
 await mkdirp('templates')
@@ -169,7 +169,7 @@ const finalTaskContent = createOrganizationTasksYml({
   ssoAssignmentTemplate: './templates/sso-assignments.yml',
 })
 await writeFile('organization-tasks.yml', finalTaskContent)
-console.info('Created organization-tasks.yml')
+console.info('✅ Created organization-tasks.yml')
 
 const finalSsoAssignmentsContent = createOrgFormationSsoAssignmentsYml({
   identityStoreId,
@@ -179,13 +179,13 @@ const finalSsoAssignmentsContent = createOrgFormationSsoAssignmentsYml({
   permissionSets,
   assignments,
 })
-await writeFile('templates/sso-assignment.yml', finalSsoAssignmentsContent)
-console.info('Created templates/sso-assignment.yml')
+await writeFile('templates/sso-assignments.yml', finalSsoAssignmentsContent)
+console.info('✅ Created templates/sso-assignments.yml')
 
 // 11. execute org-formation again to remove the temporary group
 await orgFormationDeploy($$, 'organization-tasks.yml')
-console.info('Deployed newly generated OrgFormation template')
+console.info('✅ Deployed newly generated OrgFormation template')
 
 // 12. cleanup temporary folder
 await rimraf(TEMP_DIR)
-console.info(`Removed ${TEMP_DIR}`)
+console.info(`✅ Removed ${TEMP_DIR}`)

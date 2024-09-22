@@ -65,6 +65,7 @@ type TemplateResourcePermissionSet = {
 }
 type TemplateResourceAssignment = {
   Type: 'AWS::SSO::Assignment'
+  DeletionPolicy?: 'Retain' | 'Delete'
   Properties: {
     InstanceArn: { Ref: string } | string
     PermissionSetArn: string
@@ -301,6 +302,7 @@ export function createTemplate({
 
     template.Resources[logicalId] = {
       Type: 'AWS::SSO::Assignment',
+      DeletionPolicy: 'Retain',
       Properties: {
         InstanceArn: {
           Ref: 'ManagingInstanceArn',

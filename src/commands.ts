@@ -2,6 +2,7 @@ import {
   CloudFormationClient,
   CreateChangeSetCommand,
   DescribeChangeSetCommand,
+  DescribeStacksCommand,
   ExecuteChangeSetCommand,
   type ResourceToImport,
 } from '@aws-sdk/client-cloudformation'
@@ -216,6 +217,7 @@ type CreateAndExecuteChangeSetOptions = {
   resourcesToImport: ResourceToImport[]
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <explanation>
 export async function createAndExecuteChangeSet({
   stackName,
   templateBody,
@@ -265,4 +267,33 @@ export async function createAndExecuteChangeSet({
     StackName: stackName,
   })
   await cloudformationClient.send(executeChangeSetCommand)
+
+  // wait for import to complete
+  let changeSetImportAttempts = 0
+  while (true) {
+    const describeStackCommand = new DescribeStacksCommand({
+      StackName: stackName,
+    })
+    const describeStackResult =
+      await cloudformationClient.send(describeStackCommand)
+
+    const status = describeStackResult.Stacks?.[0]?.StackStatus
+    if (status) {
+      if (status === 'IMPORT_COMPLETE') {
+        break
+      }
+
+      if (status !== 'IMPORT_IN_PROGRESS') {
+        throw new Error(
+          `Failed to import change set (${status}): ${describeStackResult.Stacks?.[0]?.StackStatusReason}`
+        )
+      }
+    }
+
+    changeSetImportAttempts++
+    if (changeSetImportAttempts > 30) {
+      throw new Error('Change set import has been taking too long')
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
 }
