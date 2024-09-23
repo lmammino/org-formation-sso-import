@@ -84,6 +84,16 @@ npx org-formation-sso-import
 > Your `organization.yml` file must have explicit `AccountId` properties for
 > every account in your organization.
 
+If all goes well, you should see 2 new files in your workspace:
+
+- `organization-tasks.yml`: This file contains the OrgFormation tasks to manage
+  your AWS SSO configuration.
+- `templates/sso-assignments.yml`: The template you can edit to update your
+  Groups, Permission Sets and Assignments.
+
+After any change you can run:
+`org-formation perform-tasks organization-tasks.yml` to deploy the changes.
+
 ### Configuration options
 
 You can get the list of available options by running:
