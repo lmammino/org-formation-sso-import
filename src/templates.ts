@@ -1,7 +1,7 @@
+import { join } from 'node:path'
 import type { ResourceToImport } from '@aws-sdk/client-cloudformation'
 import type { Group } from '@aws-sdk/client-identitystore'
 import type { AccountAssignment } from '@aws-sdk/client-sso-admin'
-import { join } from 'node:path'
 import nunjucks from 'nunjucks'
 import { stringify } from 'yaml'
 import type { OrgFormationAccount } from './accounts.js'

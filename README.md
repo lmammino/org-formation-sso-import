@@ -1,22 +1,55 @@
 # org-formation-sso-import
 
-An experimental™️ script to import AWS SSO groups, permission sets and
+[![build](https://github.com/lmammino/org-formation-sso-import/actions/workflows/build.yml/badge.svg)](https://github.com/lmammino/org-formation-sso-import/actions/workflows/build.yml)
+[![npm](https://img.shields.io/npm/v/org-formation-sso-import)](https://www.npmjs.com/package/org-formation-sso-import)
+[![release-please](https://badgen.net/static/release-please/%F0%9F%99%8F/green)](https://github.com/googleapis/release-please)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://conventionalcommits.org)
+
+An **experimental™️** script to import AWS SSO groups, permission sets and
 assignments into a
 [OrgFormation](https://github.com/org-formation/org-formation-cli) workspace.
+
+> [!WARNING]\
+> The **experimental™️** nature of this project is to be taken very seriously.
+> This is still a new project which has been tested only against a limited
+> number of use cases and configuration. It might not work 100% with your
+> specific configuration. Please use it with caution and report any issues you
+> might find. Even better, consider opening a PR to improve it if you find any
+> bug or a missing feature! 😇
 
 ## The problem
 
 If you have already bootstrapped your Landing Zone manually (or with some other
 tool other than OrgFormation, e.g. Control Tower) and you want to start using
 OrgFormation, you can easily import all your accounts and organizational units
-with the `org-formation init` command. However, you will still need to manually
-delete all your AWS SSO groups, permission sets and assignments and recreate
-them as IaC in your OrgFormation template.
+with the `org-formation init` command. However, there is no simple way to import
+all your SSO resources like Groups, Permission Sets, and Assignments.
 
-This script aims to automate this process by importing all your AWS SSO
-configuration into your OrgFormation template and making sure all the existing
-resources are imported correctly into the CloudFormation stacks managed by
-OrgFormation.
+This means that you generally have 3 options:
+
+1. **Start from scratch**: Delete all your AWS SSO configuration and recreate
+   everything as IaC in your OrgFormation template. Of course, this means that
+   you might have some downtime where your users might not be able to access
+   specific accounts or use specific profiles.
+2. **Manage forward**: Leave your existing AWS SSO configuration as is and start
+   managing new resources with OrgFormation. This is generally not recommended
+   as it will lead to a split-brain configuration where some resources are
+   managed by OrgFormation and some are managed manually.
+3. **Manual import**: Manually import all your AWS SSO configuration into your
+   OrgFormation template. This is probably the best approach because it allows
+   to keep your existing resources and start managing them with OrgFormation.
+   The problem is that this is a very manual and error-prone process. After all,
+   [importing resources in an existing CloudFormation stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resource-import-existing-stack.html)
+   is like performing brain surgery with a spoon! 🧠😨 So, unless you are a
+   CloudFormation ninja (or a brain surgeon), you should probably avoid this
+   approach.
+
+This script tries to provide a fourth option. It basically tries to automate
+away all the complexity of a manual import by following a set of opinionated
+steps. This script will create a new OrgFormation template in your workspace,
+import Groups, Permission Sets and Assignments from AWS SSO and deploy them in a
+new CloudFormation stack in your management account. All by running one simple
+command!
 
 ## Installation
 

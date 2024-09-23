@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
+import { writeFile } from 'node:fs/promises'
 import type { Group } from '@aws-sdk/client-identitystore'
 import { mkdirp } from 'mkdirp'
-import { writeFile } from 'node:fs/promises'
 import { rimraf } from 'rimraf'
 import { $ } from 'zx'
 import { listOrgFormationAccounts } from './accounts.js'

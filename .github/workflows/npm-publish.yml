@@ -18,7 +18,7 @@ jobs:
           cache: 'pnpm'
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      # - run: pnpm test # TODO: uncomment this line when tests are added
+      - run: pnpm test
       - run: pnpm build
       - run: pnpm publish --access public --no-git-checks
         env:
