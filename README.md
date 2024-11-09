@@ -117,6 +117,10 @@ This will print something like:
   -m <value>
   Pass the arn of the managing instance. If not provided will try to fetch for an existing one
 
+  --region <value>
+  -r <value>
+  Pass the region to be used. If not provided will use the value of the AWS_REGION environment variable.
+
   --verbose
   -v
   Enables verbose mode
