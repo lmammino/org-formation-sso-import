@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/lmammino/org-formation-sso-import/compare/org-formation-sso-import-v0.1.0...org-formation-sso-import-v0.1.1) (2024-11-09)
+
+
+### Miscellaneous Chores
+
+* release 0.1.1 ([4bfad2f](https://github.com/lmammino/org-formation-sso-import/commit/4bfad2f2a11f3e4151e2410ae32cd98170866050))
+
 ## [0.1.0](https://github.com/lmammino/org-formation-sso-import/compare/org-formation-sso-import-v0.0.2...org-formation-sso-import-v0.1.0) (2024-11-09)
 
 
