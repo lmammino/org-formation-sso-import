@@ -47,7 +47,6 @@ let managingInstanceArn = args['managing-instance-arn']
 let region = args.region
 const stackName = args['stack-name']
 if (!region) {
-  // biome-ignore lint/nursery/noProcessEnv: <explanation>
   region = process.env.AWS_REGION as string
   if (!region) {
     console.error(
