@@ -10,6 +10,7 @@ type Args = {
   'stack-name': string
   'identity-store-id': string
   'managing-instance-arn': string
+  region: string
   verbose: boolean
   help: boolean
 }
@@ -32,6 +33,12 @@ const optionsConfig = {
     short: 'm',
     default: '',
     help: 'Pass the arn of the managing instance. If not provided will try to fetch for an existing one',
+  },
+  region: {
+    type: 'string',
+    short: 'r',
+    default: '',
+    help: 'Pass the region to be used. If not provided will use the value of the AWS_REGION environment variable.',
   },
   verbose: {
     type: 'boolean',

@@ -340,15 +340,18 @@ export function createOrganizationTasksYml({
 export function createBaseOrgFormationSsoAssignmentsYml({
   identityStoreId,
   managingInstanceArn,
+  region,
 }: {
   identityStoreId: string
   managingInstanceArn: string
+  region: string
 }) {
   const baseTemplateContent = nunjucksEnv.render(
     'sso-assignments-base.yml.njk',
     {
       identityStoreId,
       managingInstanceArn,
+      region,
       groups: [
         {
           name: TEMP_GROUP_NAME,
@@ -368,11 +371,13 @@ type CreateOrgFormationSsoAssignmentsYmlOptions = {
   permissionSets: ExtendedPermissionSet[]
   assignments: AccountAssignment[]
   accounts: OrgFormationAccount[]
+  region: string
 }
 
 export function createOrgFormationSsoAssignmentsYml({
   identityStoreId,
   managingInstanceArn,
+  region,
   groups,
   permissionSets,
   assignments,
@@ -385,6 +390,7 @@ export function createOrgFormationSsoAssignmentsYml({
   const templateContent = nunjucksEnv.render('sso-assignments.yml.njk', {
     identityStoreId,
     managingInstanceArn,
+    region,
     groups,
     permissionSets,
     assignments,
