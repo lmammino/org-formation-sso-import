@@ -10,6 +10,7 @@ type Args = {
   'stack-name': string
   'identity-store-id': string
   'managing-instance-arn': string
+  region: string
   verbose: boolean
   help: boolean
 }

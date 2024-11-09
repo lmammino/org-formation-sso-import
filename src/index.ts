@@ -44,7 +44,18 @@ await getOrgFormationVersion($$)
 // 1. determine identity store id and managing instance arn
 let identityStoreId = args['identity-store-id']
 let managingInstanceArn = args['managing-instance-arn']
+let region = args.region
 const stackName = args['stack-name']
+if (!region) {
+  // biome-ignore lint/nursery/noProcessEnv: <explanation>
+  region = process.env.AWS_REGION as string
+  if (!region) {
+    console.error(
+      'please set AWS_REGION environment variable or provide region as an argument'
+    )
+    process.exit(1)
+  }
+}
 if (!(identityStoreId && managingInstanceArn)) {
   console.warn(
     'identity-store-id or managing-instance-arn not provided, trying to determine them...'
@@ -58,6 +69,7 @@ if (!(identityStoreId && managingInstanceArn)) {
   }
   identityStoreId = ssoInstances[0]?.IdentityStoreId as string
   managingInstanceArn = ssoInstances[0]?.InstanceArn as string
+  console.warn(`region: ${region}`)
   console.warn(`identity-store-id: ${identityStoreId}`)
   console.warn(`managing-instance-arn: ${managingInstanceArn}`)
 }
@@ -79,6 +91,7 @@ console.info(`✅ Created ${TEMP_DIR}/organization-tasks.yml`)
 const baseTemplateContent = createBaseOrgFormationSsoAssignmentsYml({
   identityStoreId,
   managingInstanceArn,
+  region,
 })
 await writeFile(`${TEMP_DIR}/sso-assignments.yml`, baseTemplateContent)
 console.info(`✅ Created ${TEMP_DIR}/sso-assignments.yml`)
@@ -174,6 +187,7 @@ console.info('✅ Created organization-tasks.yml')
 const finalSsoAssignmentsContent = createOrgFormationSsoAssignmentsYml({
   identityStoreId,
   managingInstanceArn,
+  region,
   accounts,
   groups,
   permissionSets,
